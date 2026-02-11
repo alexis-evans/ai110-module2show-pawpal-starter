@@ -2,15 +2,21 @@
 
 ## 1. System Design
 
+Three core actions a user should be able to perform are allowing a user to add a new pet/owner combination with info about them, adding and editing tasks, and displaying the day's tasks.
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+My UML design has four classes: Owner, Pet, Task, and Scheduler. Owner has basic info for an owner of a pet like name, contact information, and preferences, and methods to add and remove a pet. Pet has information like name, age, type, and a list of tasks assigned to that pet, and methods to add and remove tasks. The relationship between Owner and Pet is that Owner owns a Pet. Task is a class that has a description, a duration, a priority, and a status. Pets have Tasks. The last class, Scheduler, has a list of tasks and a list of constraints, and the ability to generate schedules and explain schedules.
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+Yes, I made several changes. One of the changes I made was adding a list of Pets to the Owner class as an attribute. Before, I had methods to add and remove pets, but no way to store which pets belonged to which owners. This allows Pets and Owners to be tied together. After adding this suggestion with AI, I also realized that each Pet should have an owner, so I added that line myself. This way, pets and owners are connected in both directions.
 
 ---
 

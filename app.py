@@ -2,7 +2,12 @@ import streamlit as st
 from datetime import datetime
 from pawpal_system import Owner, Pet, Task, Scheduler, Priority
 
-st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
+st.set_page_config(
+    page_title="PawPal+",
+    page_icon="🐾",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ============================================================================
 # Step 2: Initialize Session State (Application "Memory")
@@ -27,6 +32,86 @@ if "edit_task_id" not in st.session_state:
     st.session_state.edit_task_id = None
 
 
+def apply_app_theme():
+    """Apply lightweight styling to improve readability and visual hierarchy."""
+    st.markdown(
+        """
+        <style>
+            .block-container {
+                padding-top: 1.2rem;
+                padding-bottom: 2rem;
+            }
+            .pawpal-hero {
+                background: linear-gradient(120deg, #f0f9ff 0%, #fef9c3 100%);
+                border: 1px solid #e2e8f0;
+                border-radius: 14px;
+                padding: 1.1rem 1.2rem;
+                margin-bottom: 1rem;
+            }
+            .pawpal-hero h1 {
+                margin: 0;
+                font-size: 1.6rem;
+                color: #0f172a;
+            }
+            .pawpal-hero p {
+                margin: 0.4rem 0 0 0;
+                color: #334155;
+            }
+            .pawpal-section {
+                margin-top: 0.6rem;
+                margin-bottom: 0.35rem;
+                color: #0f172a;
+                font-weight: 700;
+                font-size: 1.1rem;
+            }
+            .pawpal-chip {
+                display: inline-block;
+                padding: 0.15rem 0.45rem;
+                border-radius: 999px;
+                background: #e0f2fe;
+                color: #075985;
+                font-size: 0.8rem;
+                font-weight: 600;
+                margin-right: 0.3rem;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def pet_label(pet: Pet) -> str:
+    """Build a user-friendly label for pet selectors."""
+    return f"{pet.name} ({pet.type}, age {pet.age})"
+
+
+def priority_chip(priority_value: int) -> str:
+    """Return a compact color-tagged priority label."""
+    name = Priority(priority_value).name
+    color_map = {"HIGH": "#ef4444", "MEDIUM": "#f59e0b", "LOW": "#16a34a"}
+    color = color_map[name]
+    return (
+        f'<span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:999px;'
+        f'background:{color}22;color:{color};font-size:0.8rem;font-weight:700;">{name}</span>'
+    )
+
+
+def status_chip(status: str) -> str:
+    """Return a compact color-tagged status label."""
+    color_map = {
+        "pending": "#ca8a04",
+        "scheduled": "#0284c7",
+        "completed": "#16a34a",
+        "skipped": "#64748b"
+    }
+    color = color_map.get(status, "#334155")
+    return (
+        f'<span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:999px;'
+        f'background:{color}22;color:{color};font-size:0.8rem;font-weight:700;text-transform:capitalize;">'
+        f"{status}</span>"
+    )
+
+
 def parse_task_time(value: str):
     """Parse HH:MM input and return normalized time string or None if blank."""
     cleaned = value.strip()
@@ -46,14 +131,38 @@ def parse_task_time(value: str):
 # ============================================================================
 # App Header
 # ============================================================================
-st.title("🐾 PawPal+ Pet Care Planner")
-st.markdown("Plan and schedule care tasks for your pets based on time, priority, and preferences.")
+apply_app_theme()
+st.markdown(
+    """
+    <div class="pawpal-hero">
+      <h1>🐾 PawPal+ Pet Care Planner</h1>
+      <p>Plan care tasks for your pets based on available time, priority, and your preferred routine.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+total_pets = len(st.session_state.owner.pets)
+total_tasks = len(st.session_state.owner.get_all_tasks())
+pending_tasks = len([t for t in st.session_state.owner.get_all_tasks() if t.status == "pending"])
+quick_col1, quick_col2, quick_col3, quick_col4 = st.columns(4)
+quick_col1.metric("Pets", total_pets)
+quick_col2.metric("Total Tasks", total_tasks)
+quick_col3.metric("Pending", pending_tasks)
+quick_col4.metric("Available Time", f"{st.session_state.owner.available_time_minutes} min")
+
+with st.sidebar:
+    st.header("PawPal+ Guide")
+    st.caption("1. Add pets\n2. Add tasks\n3. Generate schedule\n4. Complete recurring care")
+    st.divider()
+    st.caption("Tip: Fixed times (HH:MM) are always honored first.")
+    st.caption("Tip: Flexible tasks are prioritized by priority, then by shorter duration.")
 
 
 # ============================================================================
 # Owner Information Section
 # ============================================================================
-st.header("👤 Owner Information")
+st.markdown('<p class="pawpal-section">👤 Owner Information</p>', unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 with col1:
@@ -100,7 +209,7 @@ st.divider()
 # ============================================================================
 # Pet Management Section
 # ============================================================================
-st.header("🐕 Manage Pets")
+st.markdown('<p class="pawpal-section">🐕 Manage Pets</p>', unsafe_allow_html=True)
 
 # Add new pet
 with st.expander("➕ Add New Pet", expanded=len(st.session_state.owner.pets) == 0):
@@ -151,11 +260,14 @@ with st.expander("➕ Add New Pet", expanded=len(st.session_state.owner.pets) ==
 if st.session_state.owner.pets:
     st.subheader("Your Pets")
     for idx, pet in enumerate(st.session_state.owner.pets):
-        col1, col2 = st.columns([4, 1])
+        col1, col2 = st.columns([5, 1])
         with col1:
-            st.markdown(f"**{pet.name}** - {pet.type}, Age {pet.age} - {len(pet.tasks)} task(s)")
+            st.markdown(
+                f"**{pet.name}**  \n"
+                f"`{pet.type}` · age `{pet.age}` · `{len(pet.tasks)}` task(s)"
+            )
         with col2:
-            if st.button("❌", key=f"remove_pet_{idx}", help=f"Remove {pet.name}"):
+            if st.button("Remove", key=f"remove_pet_{idx}", help=f"Remove {pet.name}", use_container_width=True):
                 st.session_state.owner.remove_pet(pet)
                 st.rerun()
 else:
@@ -166,16 +278,17 @@ st.divider()
 # ============================================================================
 # Task Management Section
 # ============================================================================
-st.header("📋 Manage Tasks")
+st.markdown('<p class="pawpal-section">📋 Manage Tasks</p>', unsafe_allow_html=True)
 
 # Select pet for task
 if st.session_state.owner.pets:
-    selected_pet_name = st.selectbox(
+    pet_options = {pet_label(p): p for p in st.session_state.owner.pets}
+    selected_pet_key = st.selectbox(
         "Select Pet for Task",
-        [pet.name for pet in st.session_state.owner.pets],
+        list(pet_options.keys()),
         help="Choose which pet this task is for"
     )
-    selected_pet = next(pet for pet in st.session_state.owner.pets if pet.name == selected_pet_name)
+    selected_pet = pet_options[selected_pet_key]
 
     # Add new task
     with st.expander("➕ Add New Task", expanded=True):
@@ -252,9 +365,12 @@ if st.session_state.owner.pets:
     # Filter and Sort Controls
     col1, col2, col3 = st.columns(3)
     with col1:
+        filter_pet_options = {"All Pets": None}
+        for pet in st.session_state.owner.pets:
+            filter_pet_options[pet_label(pet)] = pet
         filter_pet = st.selectbox(
             "Filter by Pet",
-            ["All Pets"] + [pet.name for pet in st.session_state.owner.pets],
+            list(filter_pet_options.keys()),
             key="filter_pet"
         )
     with col2:
@@ -269,7 +385,8 @@ if st.session_state.owner.pets:
     # Apply filters
     filtered_tasks = all_tasks
     if filter_pet != "All Pets":
-        filtered_tasks = scheduler.filter_tasks(filtered_tasks, pet_name=filter_pet)
+        selected_filter_pet = filter_pet_options[filter_pet]
+        filtered_tasks = scheduler.filter_tasks(filtered_tasks, pet_name=selected_filter_pet.name)
     if filter_status != "All Status":
         filtered_tasks = scheduler.filter_tasks(filtered_tasks, status=filter_status)
 
@@ -294,36 +411,34 @@ if st.session_state.owner.pets:
             task_id = id(task)
 
             with st.container():
-                col1, col2, col3, col4, col5, col6, col7 = st.columns([3, 1, 1, 1, 1, 1, 1])
+                col1, col2, col3, col4, col5, col6, col7 = st.columns([3.3, 1.2, 1.2, 1.4, 1, 1, 1])
                 with col1:
-                    st.text(f"{task.description} ({pet_name}){time_str}")
+                    st.markdown(f"**{task.description}**  \n{pet_name}{time_str}")
                 with col2:
-                    st.text(f"{task.duration}min")
+                    st.markdown(f"`{task.duration} min`")
                 with col3:
-                    st.text(f"{Priority(task.priority).name}")
+                    st.markdown(priority_chip(task.priority), unsafe_allow_html=True)
                 with col4:
-                    # Status badge with color
-                    status_color = {
-                        "pending": "🟡",
-                        "scheduled": "🔵",
-                        "completed": "🟢",
-                        "skipped": "⚪"
-                    }
-                    st.text(f"{status_color.get(task.status, '⚫')} {task.status}")
+                    st.markdown(status_chip(task.status), unsafe_allow_html=True)
                 with col5:
                     # Mark complete button for recurring tasks
                     if task.frequency in ["daily", "weekly"] and task.status != "completed":
-                        if st.button("✅", key=f"complete_{pet_name}_{idx}", help="Mark complete (auto-creates next)"):
+                        if st.button(
+                            "Done",
+                            key=f"complete_{pet_name}_{idx}",
+                            help="Mark complete (auto-creates next)",
+                            use_container_width=True
+                        ):
                             new_task = task.mark_complete()
                             if new_task:
                                 st.success(f"✅ Task completed! Created new task for next occurrence.")
                             st.rerun()
                 with col6:
-                    if st.button("✏️", key=f"edit_task_{pet_name}_{idx}", help="Edit task"):
+                    if st.button("Edit", key=f"edit_task_{pet_name}_{idx}", help="Edit task", use_container_width=True):
                         st.session_state.edit_task_id = task_id
                         st.rerun()
                 with col7:
-                    if st.button("❌", key=f"remove_task_{pet_name}_{idx}", help="Remove task"):
+                    if st.button("Delete", key=f"remove_task_{pet_name}_{idx}", help="Remove task", use_container_width=True):
                         if task.pet:
                             task.pet.remove_task(task)
                         st.rerun()
@@ -424,17 +539,17 @@ st.divider()
 # ============================================================================
 # Schedule Generation Section
 # ============================================================================
-st.header("📅 Generate Schedule")
+st.markdown('<p class="pawpal-section">📅 Generate Schedule</p>', unsafe_allow_html=True)
 scheduler_for_schedule = Scheduler(owner=st.session_state.owner)
 
 col1, col2 = st.columns([1, 3])
 with col1:
-    if st.button("🚀 Generate Schedule", type="primary", use_container_width=True):
+    if st.button("Generate Schedule", type="primary", use_container_width=True):
         # Step 3: Wire UI actions to logic
         st.session_state.schedule = scheduler_for_schedule.generate_schedule()
 
 with col2:
-    if st.button("🔄 Clear Schedule", use_container_width=True):
+    if st.button("Clear Schedule", use_container_width=True):
         st.session_state.schedule = None
         # Reset all task statuses to pending
         for pet in st.session_state.owner.pets:
@@ -484,7 +599,7 @@ if st.session_state.schedule:
                     duration_text = f"⏱️ {task.duration} minutes"
                     st.markdown(f"~~{duration_text}~~" if is_completed else duration_text)
                 with col3:
-                    priority_text = f"🎯 {Priority(task.priority).name}"
+                    priority_text = f"🎯 {Priority(task.priority).name} priority"
                     st.markdown(f"~~{priority_text}~~" if is_completed else priority_text)
                 with col4:
                     if not is_completed:

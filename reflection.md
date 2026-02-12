@@ -94,3 +94,4 @@ I would redesign the scheduler UI because right now it's just a list, and I woul
 - What is one important thing you learned about designing systems or working with AI on this project?
 
 I learned that AI can handle really complex tasks, and it's a lot better than where it was just a few years ago. However, it's still not perfect, and it misses a lot, but if you give it direction, it can execute very, very well.
+

@@ -42,6 +42,9 @@ pip install -r requirements.txt
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
 
+---
+---
+
 ## Smarter Scheduling
 
 PawPal+ now includes smarter planning behavior to better match real user intent:
@@ -64,3 +67,21 @@ Test coverage includes core domain and scheduling behavior: owner/pet/task manag
 
 Confidence Level: ⭐️⭐️⭐️⭐️
 4/5 stars based on current automated test results. Feel pretty confident, but you can always miss something.
+
+## Features
+
+- **Chronological schedule output**: final scheduled tasks are sorted by start time for a clear day plan.
+- **Fixed-time task honoring**: tasks with explicit `HH:MM` times are scheduled at those exact times.
+- **Priority-based scheduling**: flexible tasks are ordered by priority (HIGH to LOW), then shorter duration first.
+- **Preference-aware start windows**: flexible tasks start from preferred windows (`morning`, `afternoon`, `evening`) with fallback search if needed.
+- **Time-budget constraints**: scheduling respects total available minutes and skips tasks that cannot fit.
+- **Gap-based slot finding**: flexible tasks are placed in the earliest available non-overlapping slot.
+- **Conflict warnings**: overlapping timed tasks are detected and reported as conflict alerts.
+- **Task status workflow**: tasks move through `pending`, `scheduled`, `completed`, and `skipped`.
+- **Daily/weekly recurrence**: completing recurring tasks automatically creates the next occurrence.
+- **Task filtering and time sorting utilities**: helper methods support filtering by pet/status and sorting by task time.
+
+## Demo 📸
+
+![PawPal+ Demonstration Screenshot](PawPal_Final.png)
+

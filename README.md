@@ -62,5 +62,5 @@ python -m pytest
 
 Test coverage includes core domain and scheduling behavior: owner/pet/task management, status transitions, task updates, recurrence logic (daily/weekly), fixed-time scheduling, chronological sorting, priority ordering, filter/sort helpers, conflict detection, boundary conditions, and skipped-task edge cases.
 
-Confidence Level: 
+Confidence Level: ⭐️⭐️⭐️⭐️
 4/5 stars based on current automated test results. Feel pretty confident, but you can always miss something.

@@ -51,3 +51,16 @@ PawPal+ now includes smarter planning behavior to better match real user intent:
 - **Conflict visibility**: overlapping timed tasks are allowed, but clearly flagged with caution indicators.
 - **Recurring task automation**: completing daily/weekly tasks can automatically create the next occurrence.
 - **Task editing improvements**: tasks can be edited after creation, including moving a task to a different pet.
+
+## Testing PawPal+
+
+Run the test suite with:
+
+```bash
+python -m pytest
+```
+
+Test coverage includes core domain and scheduling behavior: owner/pet/task management, status transitions, task updates, recurrence logic (daily/weekly), fixed-time scheduling, chronological sorting, priority ordering, filter/sort helpers, conflict detection, boundary conditions, and skipped-task edge cases.
+
+Confidence Level: 
+4/5 stars based on current automated test results. Feel pretty confident, but you can always miss something.
